@@ -1,0 +1,35 @@
+Vagrant.configure("2") do |config|
+  # Образ
+  config.vm.box = "hashicorp/bionic64"
+
+  # Настройки VirtualBox
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "vagrant_result"
+    vb.memory = "1024"
+    vb.cpus = 1
+  end
+
+  # Сеть
+  config.vm.network "private_network", ip: "192.168.33.10"
+  config.vm.network "public_network"                          # Подключает ВМ к реальной сети (например, через DHCP). 
+  config.vm.network "forwarded_port", guest: 80, host: 8080   # Перенаправляет порты с хоста на ВМ. Здесь порт 80 внутри ВМ будет доступен на порту 8080 хоста. 
+
+  # Общие папки
+  config.vm.synced_folder ".", "/vagrant"
+  config.vm.synced_folder "../data", "/var/www/html"
+
+  # Провижининг (настройка системы)
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y nginx
+    systemctl enable nginx
+    systemctl start nginx
+  SHELL
+
+  # Использование Ansible
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbook.yml"
+  end
+
+  
+end
